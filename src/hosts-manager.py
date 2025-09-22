@@ -52,7 +52,7 @@ def apply_hosts(folder_path):
         print(f"An error occurred: {e}")
 
     
-def revert_hosts():
+def restore_hosts():
     """Restore the original hosts file from backup."""
     try:
         if os.path.exists(HOSTS_BACKUP_FILE):
@@ -64,7 +64,3 @@ def revert_hosts():
         print("Permission denied. Run the script as Administrator/with sudo.")
     except Exception as e:
         print(f"An error occurred while restoring hosts: {e}")
-
-
-if __name__ == "__main__":
-    apply_hosts("../config")
