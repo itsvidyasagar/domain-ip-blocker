@@ -76,7 +76,7 @@ def applyIpBlock(folderPath):
     pBlock()
     else:
         createBlockedFile()
-
+        
     blockedIps = set()
 
     try:

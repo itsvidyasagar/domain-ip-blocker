@@ -2,7 +2,6 @@ import platform
 import os
 import shutil
 
-
 # Determine OS-specific hosts file path and backup
 if platform.system() == "Windows":
     HOSTS_FILE = r"C:\Windows\System32\drivers\etc\hosts"
@@ -10,7 +9,7 @@ if platform.system() == "Windows":
 else:
     HOSTS_FILE = "/etc/hosts"
     HOSTS_BACKUP_FILE = "/etc/hosts.backup"
-
+    
 
 def createBackup():
     if not os.path.exists(HOSTS_BACKUP_FILE):
@@ -19,17 +18,13 @@ def createBackup():
     else:
         print("Backup already exists. Skipping.")
 
-
 def applyHosts(folderPath):
     try:
         createBackup()
         shutil.copy(HOSTS_BACKUP_FILE, HOSTS_FILE)  # restore original
-
         txtFiles = [f for f in os.listdir(folderPath) if f.endswith(".txt")]
-
         with open(HOSTS_FILE, "a") as hosts:
             hosts.write("\n# The following hosts are listed by DNS & IP website blocking tool.\n")
-
             for fileName in txtFiles:
                 filePath = os.path.join(folderPath, fileName)
                 with open(filePath, "r") as f:
@@ -38,7 +33,6 @@ def applyHosts(folderPath):
                         if line and not line.startswith("#"):
                             hosts.write(line + "\n")
                 print(f"Applied blocking from {fileName}")
-
     except PermissionError:
         print("Permission denied. Run the script as Administrator/with sudo.")
     except FileNotFoundError:
