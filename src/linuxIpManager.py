@@ -1,23 +1,16 @@
 import os
 import subprocess
-import pwd
-import grp
 from domainResolver import resolveIps
+from filePermissions import changeMode
 
 
-BLOCKED_FILE = "/etc/ip.blocked"
-
-def secureFile(path):
-    root_uid = pwd.getpwnam("root").pw_uid
-    root_gid = grp.getgrnam("root").gr_gid
-    os.chown(path, root_uid, root_gid)
-    os.chmod(path, 0o644)
+BLOCKED_FIL0o644E = "/etc/ip.blocked"
 
 def createBlockedFile():
     try:
         with open(BLOCKED_FILE, "w") as f:
             pass
-        secureFile(BLOCKED_FILE)
+        changeMode(BLOCKED_FILE,0o644)
         print(f"Created empty blocked IP file at {BLOCKED_FILE} with secure permissions.")
     except PermissionError:
         print("Permission denied. Run this script with sudo.")
@@ -63,7 +56,7 @@ def revertIpBlock():
         # Clear the file after reverting
         with open(BLOCKED_FILE, "w") as f:
             pass
-        secureFile(BLOCKED_FILE)
+        changeMode(BLOCKED_FILE,0o644)
 
         print("Reverted all IP blocks.")
     except Exception as e:
@@ -109,7 +102,7 @@ def applyIpBlock(folderPath):
         with open(BLOCKED_FILE, "w") as f:
             for ip in blockedIps:
                 f.write(ip + "\n")
-        secureFile(BLOCKED_FILE)
+        changeMode(BLOCKED_FILE,0o644)
         print(f"Updated {BLOCKED_FILE} with current blocked IPs (secure permissions).")
     except Exception as e:
         print(f"Error writing to {BLOCKED_FILE}: {e}")
