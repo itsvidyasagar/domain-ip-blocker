@@ -65,8 +65,7 @@ def revertIpBlock():
 
 def applyIpBlock(folderPath):
     if os.path.exists(BLOCKED_FILE):
-        revertI
-    pBlock()
+        revertIpBlock()
     else:
         createBlockedFile()
         
