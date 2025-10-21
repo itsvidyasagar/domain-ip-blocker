@@ -10,7 +10,6 @@ class DomainManager:
 
     def block_domains(self,domains_folder_path):
         try:
-            self.unblock_domains()
             txt_files = [f for f in os.listdir(domains_folder_path) if f.endswith(".txt")]
             with open(self.hosts_file_path, "a") as hosts:
                 hosts.write("\n"+self.start_marker)
