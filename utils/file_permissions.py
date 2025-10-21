@@ -1,12 +1,14 @@
 import os
 import platform
+import getpass
+from utils.command_runner import run_command
+from src.constants import SYSTEM
 
 def change_permissions(path, mode):
     try:
         if not os.path.exists(path):
-            print(f"File not found: {path}")
             return
-        system = platform.system().lower()
+        system = SYSTEM
         if system in ("linux", "darwin"):
             import pwd, grp
             root_uid = pwd.getpwnam("root").pw_uid
@@ -15,21 +17,19 @@ def change_permissions(path, mode):
             os.chmod(path, mode)
         elif system == "windows":
             import stat, subprocess
+            user = getpass.getuser()
             read_only = not bool(mode & stat.S_IWUSR)
             try:
                 if read_only:
-                    subprocess.run(
-                        ["icacls", path, "/inheritance:r", "/grant", f"{os.getlogin()}:R"],
-                        capture_output=True, text=True
-                    )
+                    run_command(f'icacls "{path}" /inheritance:r /grant {user}:R')
                 else:
-                    subprocess.run(
-                        ["icacls", path, "/grant", f"{os.getlogin()}:F"],
-                        capture_output=True, text=True
-                    )
+                    run_command(f'icacls "{path}" /grant {user}:F')
             except Exception:
-                print("Error: Could not apply permissions on Windows.")
+                # print("Error: Could not apply permissions on Windows.")
+                pass
         else:
-            print("Unsupported operating system.")
+            raise RuntimeError("Unsupported operating system.")
+    except PermissionError:
+        raise PermissionError("Permission denied. Run the script as Administrator/with sudo.")
     except Exception as e:
-        print(f"An error occurred: {e}")
+        raise Exception(f"{e}")
