@@ -1,5 +1,4 @@
 import os
-import platform
 import getpass
 from utils.command_runner import run_command
 from src.constants import SYSTEM
@@ -16,17 +15,13 @@ def change_permissions(path, mode):
             os.chown(path, root_uid, root_gid)
             os.chmod(path, mode)
         elif system == "windows":
-            import stat, subprocess
+            import stat
             user = getpass.getuser()
             read_only = not bool(mode & stat.S_IWUSR)
-            try:
-                if read_only:
-                    run_command(f'icacls "{path}" /inheritance:r /grant {user}:R')
-                else:
-                    run_command(f'icacls "{path}" /grant {user}:F')
-            except Exception:
-                # print("Error: Could not apply permissions on Windows.")
-                pass
+            if read_only:
+                run_command(f'icacls "{path}" /inheritance:r /grant {user}:R')
+            else:
+                run_command(f'icacls "{path}" /grant {user}:F')
         else:
             raise RuntimeError("Unsupported operating system.")
     except PermissionError:

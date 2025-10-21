@@ -1,5 +1,4 @@
 import os
-import shutil
 from utils.file_permissions import change_permissions
 from src.constants import HOSTS_FILE_PATH,START_MARKER,END_MARKER
 
@@ -55,7 +54,6 @@ class DomainManager:
                     f.writelines(new_lines)
                 change_permissions(self.hosts_file_path,0o644)
             else:
-                # print("Hosts file does not exist! Cannot Unblock domains.")
                 pass
         except PermissionError:
             raise PermissionError("Permission denied. Run the script as Administrator/with sudo.")

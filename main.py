@@ -4,40 +4,48 @@ from src.domain_manager import DomainManager
 from src.ip_manager import IpManager
 
 def main():
-    domain_manager =DomainManager()
-    ip_manager = IpManager()
-    domains_folder_path = DOMAINS_FOLDER_PATH
+    try:
+        domain_manager =DomainManager()
+        ip_manager = IpManager()
+        domains_folder_path = DOMAINS_FOLDER_PATH
 
-    parser = argparse.ArgumentParser(
-        description="web-domain-ip-blocking-tool"
-    )
-    parser.add_argument(
-        "action",
-        choices=["block", "unblock"],
-        default="block",
-        help="Choose whether to block or unblock"
-    )
-    parser.add_argument(
-        "--domain",
-        action="store_true",
-        help="Apply the action to Domain entries"
-    )
+        parser = argparse.ArgumentParser(
+            description="web-domain-ip-blocking-tool"
+        )
+        parser.add_argument(
+            "action",
+            choices=["block", "unblock"],
+            default="block",
+            help="Choose whether to block or unblock"
+        )
+        parser.add_argument(
+            "--domain",
+            action="store_true",
+            help="Apply the action to Domain entries"
+        )
 
-    args = parser.parse_args()
+        args = parser.parse_args()
 
-    if args.action == "block":
-        if args.domain:
+        if args.action == "block":
             ip_manager.unblock_ips()
-            domain_manager.block_domains(domains_folder_path)
+            domain_manager.unblock_domains()
+            if args.domain:
+                domain_manager.block_domains(domains_folder_path)
+            else:
+                ip_manager.block_ips(domains_folder_path)
+                domain_manager.block_domains(domains_folder_path)
+        elif args.action == "unblock":
+                ip_manager.unblock_ips()
+                domain_manager.unblock_domains()
         else:
-            domain_manager.unblock_domains()
-            ip_manager.block_ips(domains_folder_path)
-            # domain_manager.block_domains(domains_folder_path)
-    elif args.action == "unblock":
-            ip_manager.unblock_ips()
-            domain_manager.unblock_domains()
-    else:
-        raise RuntimeError("An error occurred proccessing the request. Try again.")
+            raise RuntimeError("An error occurred proccessing the request. Try again.")
+    except KeyboardInterrupt:
+        ip_manager.unblock_ips()
+        domain_manager.unblock_domains()
+    except PermissionError:
+        raise PermissionError("Permission denied. Run the script as Administrator/with sudo.")
+    except Exception as e:
+        raise Exception(f"{e}")
 
 if __name__ == "__main__":
-    main()
+        main()

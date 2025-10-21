@@ -1,6 +1,5 @@
 import os
 import ipaddress
-from utils.ip_set import IpSet
 from utils.domain_resolver import resolve_ips
 from utils.command_runner import run_command
 from utils.file_permissions import change_permissions
@@ -15,8 +14,6 @@ class IpManager:
             from src.constants import IPV4_SET_NAME,IPV6_SET_NAME
             self.ipv4_set_name = IPV4_SET_NAME
             self.ipv6_set_name = IPV6_SET_NAME
-            self.ipv4_set = IpSet(self.ipv4_set_name,"inet")
-            self.ipv6_set = IpSet(self.ipv6_set_name,"inet6")
         elif self.system == "darwin":
             from src.constants import START_MARKER,END_MARKER,IPV4_PF_TABLE_NAME,IPV6_PF_TABLE_NAME,IPV4_PF_TABLE_PATH,IPV6_PF_TABLE_PATH,PF_CONF_FILE_PATH
             self.start_marker = START_MARKER
@@ -40,8 +37,7 @@ class IpManager:
                 file_path = os.path.join(domains_folder_path, file_name)
                 with open(file_path, "r") as f:
                     lines = f.readlines()
-                    total_lines = len(lines)
-                    for line_number, line in enumerate(lines, start=1):
+                    for line in lines:
                         line = line.strip()
                         if line and not line.startswith("#"):
                             domain = line.split()[-1]
@@ -53,7 +49,6 @@ class IpManager:
                                         if not (ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_multicast or ip_obj.is_reserved or ip_obj.is_private):
                                             self.ipv4_list.append(ip)
                                     except ValueError:
-                                        # print(f"Invalid IPv4 skipped: {ip}")
                                         pass
                                 for ip in ipv6_list:
                                     try:
@@ -61,11 +56,8 @@ class IpManager:
                                         if not (ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_multicast or ip_obj.is_reserved or ip_obj.is_private):
                                             self.ipv6_list.append(ip)
                                     except ValueError:
-                                        # print(f"[Invalid IPv6 skipped: {ip}")
                                         pass
-                                # print(f"[{line_number}/{total_lines}]: {domain} Resolved : {len(ipv4_list)} IPv4, {len(ipv6_list)} IPv6")
                             except Exception as e:
-                                # print(f"[{line_number}/{total_lines}]: {e}")
                                 pass
         except PermissionError:
             raise PermissionError("Permission denied. Run the script as Administrator/with sudo.")
@@ -76,12 +68,12 @@ class IpManager:
     
     def _linux_block_ips(self):
         try:
-            self.ipv4_set = IpSet(self.ipv4_set_name,"inet")
-            self.ipv6_set = IpSet(self.ipv6_set_name,"inet6")
+            run_command(f"sudo ipset create {self.ipv4_set_name} hash:ip family inet -exist")
+            run_command(f"sudo ipset create {self.ipv6_set_name} hash:ip family inet6 -exist")
             for ipv4 in self.ipv4_list:
-                self.ipv4_set.add_ip(ipv4)
+                run_command(f"sudo ipset add {self.ipv4_set_name} {ipv4} -exist")
             for ipv6 in self.ipv6_list:
-                self.ipv6_set.add_ip(ipv6)
+                run_command(f"sudo ipset add {self.ipv6_set_name} {ipv6} -exist")
             run_command(f"sudo iptables -C INPUT -m set --match-set {self.ipv4_set_name} src -j DROP || sudo iptables -I INPUT -m set --match-set {self.ipv4_set_name} src -j DROP")
             run_command(f"sudo ip6tables -C INPUT -m set --match-set {self.ipv6_set_name} src -j DROP || sudo ip6tables -I INPUT -m set --match-set {self.ipv6_set_name} src -j DROP")
             run_command("sudo netfilter-persistent save")
@@ -92,10 +84,10 @@ class IpManager:
         
     def _linux_unblock_ips(self):
         try:
-            run_command(f"sudo iptables -D INPUT -m set --match-set {self.ipv4_set_name} src -j DROP",[0,1])
-            run_command(f"sudo ip6tables -D INPUT -m set --match-set {self.ipv6_set_name} src -j DROP",[0,1])
-            self.ipv4_set.destroy()
-            self.ipv6_set.destroy()
+            run_command(f"sudo iptables -D INPUT -m set --match-set {self.ipv4_set_name} src -j DROP",[0,1,2])
+            run_command(f"sudo ip6tables -D INPUT -m set --match-set {self.ipv6_set_name} src -j DROP",[0,1,2])
+            run_command(f"sudo ipset destroy {self.ipv4_set_name}",[0,1])
+            run_command(f"sudo ipset destroy {self.ipv6_set_name}",[0,1])
             run_command("sudo netfilter-persistent save")
         except PermissionError:
             raise PermissionError("Permission denied. Run the script as Administrator/with sudo.")
