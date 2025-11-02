@@ -1,3 +1,4 @@
+import os
 from utils.command_runner import run_command
 from utils.file_permissions import change_permissions
 from src.constants import START_MARKER,END_MARKER,IPV4_PF_TABLE_NAME,IPV6_PF_TABLE_NAME,IPV4_PF_TABLE_PATH,IPV6_PF_TABLE_PATH,PF_CONF_FILE_PATH
@@ -46,7 +47,7 @@ class DarwinFirewall:
             run_command("sudo pfctl -f /etc/pf.conf")
             run_command("sudo pfctl -e",[0,1])
         except PermissionError:
-            raise PermissionError("Permission denied. Run the script as Administrator/with sudo.")
+            raise PermissionError("Permission denied. Run the script with sudo.")
         except Exception as e:
             raise Exception(f"{e}")
     
@@ -75,6 +76,6 @@ class DarwinFirewall:
                 run_command("sudo pfctl -f /etc/pf.conf")
                 run_command("sudo pfctl -e",[0,1])
         except PermissionError:
-            raise PermissionError("Permission denied. Run the script as Administrator/with sudo.")
+            raise PermissionError("Permission denied. Run the script with sudo.")
         except Exception as e:
             raise Exception(f"{e}")

@@ -1,5 +1,6 @@
 from src.constants import IPV4_RULE_NAME,IPV6_RULE_NAME
 from utils.command_runner import run_command
+from utils.progress_bar import progress_bar
 
 class WindowsFirewall:
     def __init__(self):
@@ -8,12 +9,18 @@ class WindowsFirewall:
 
     def block_ips(self,ipv4_list,ipv6_list):
         try:
-            for ipv4 in ipv4_list:
+            total = len(ipv4_list)
+            title = "Applying IPv4 rules"
+            for i,ipv4 in enumerate(ipv4_list,1):
                 run_command(f'netsh advfirewall firewall add rule name="{self.ipv4_rule_name}" dir=in action=block remoteip={ipv4} enable=yes',[0,1])
-            for ipv6 in ipv6_list:
+                progress_bar(title,i,total)
+            total = len(ipv6_list)
+            title = "Applying IPv6 rules"
+            for i,ipv6 in enumerate(ipv6_list,1):
                 run_command(f'netsh advfirewall firewall add rule name="{self.ipv6_rule_name}" dir=in action=block remoteip={ipv6} enable=yes',[0,1])
+                progress_bar(title,i,total)
         except PermissionError:
-            raise PermissionError("Permission denied. Run the script as Administrator/with sudo.")
+            raise PermissionError("Permission denied. Run the script as Administrator.")
         except Exception as e:
             raise Exception(f"{e}")
 
@@ -22,6 +29,6 @@ class WindowsFirewall:
             run_command(f'netsh advfirewall firewall delete rule name="{self.ipv4_rule_name}"',[0,1])
             run_command(f'netsh advfirewall firewall delete rule name="{self.ipv6_rule_name}"',[0,1])
         except PermissionError:
-            raise PermissionError("Permission denied. Run the script as Administrator/with sudo.")
+            raise PermissionError("Permission denied. Run the script as Administrator.")
         except Exception as e:
             raise Exception(f"{e}")
