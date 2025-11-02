@@ -10,7 +10,7 @@ def main():
         domains_folder_path = DOMAINS_FOLDER_PATH
 
         parser = argparse.ArgumentParser(
-            description="web-domain-ip-blocking-tool"
+            description="domain-ip-blocking-tool"
         )
         parser.add_argument(
             "action",
@@ -21,7 +21,7 @@ def main():
         parser.add_argument(
             "--domain",
             action="store_true",
-            help="Apply the action to Domain entries"
+            help="Apply the action only at domain level"
         )
 
         args = parser.parse_args()
@@ -38,7 +38,7 @@ def main():
                 ip_manager.unblock_ips()
                 domain_manager.unblock_domains()
         else:
-            raise RuntimeError("An error occurred proccessing the request. Try again.")
+            raise RuntimeError("Error occurred proccessing the request. Try again.")
     except KeyboardInterrupt:
         ip_manager.unblock_ips()
         domain_manager.unblock_domains()
