@@ -1,7 +1,7 @@
 import dns.resolver
 from src.constants import DNS_RESOLVER_LIFE_TIME
 
-def resolve_ips(domain):
+def resolve_domain(domain):
     ipv4_list = set()
     ipv6_list = set()
     try:

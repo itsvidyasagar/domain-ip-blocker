@@ -1,6 +1,7 @@
 import os
 import ipaddress
-from utils.domain_resolver import resolve_ips
+from utils.domain_resolver import resolve_domain
+from utils.progress_bar import progress_bar
 from src.constants import SYSTEM
 from utils.linux_firewall import LinuxFirewall
 from utils.darwin_firewall import DarwinFirewall
@@ -20,19 +21,21 @@ class IpManager:
         else:
             raise RuntimeError("Unsupported operating system.")
 
-    def _list_domain_ips(self,domains_folder_path):
+    def _collect_ip_addresses(self,domains_folder_path):
         try:
             txt_files = [f for f in os.listdir(domains_folder_path) if f.endswith(".txt")]
             for file_name in txt_files:
                 file_path = os.path.join(domains_folder_path, file_name)
                 with open(file_path, "r") as f:
                     lines = f.readlines()
-                    for line in lines:
+                    total = len(lines)
+                    title = f"Resolving {file_name}"
+                    for i,line in enumerate(lines,1):
                         line = line.strip()
                         if line and not line.startswith("#"):
                             domain = line.split()[-1]
                             try:
-                                ipv4_list, ipv6_list = resolve_ips(domain)
+                                ipv4_list, ipv6_list = resolve_domain(domain)
                                 for ip in ipv4_list:
                                     try:
                                         ip_obj = ipaddress.ip_address(ip)
@@ -49,6 +52,7 @@ class IpManager:
                                         pass
                             except Exception as e:
                                 pass
+                        progress_bar(title,i,total)
         except PermissionError:
             raise PermissionError("Permission denied. Run the script as Administrator/with sudo.")
         except FileNotFoundError:
@@ -58,7 +62,7 @@ class IpManager:
 
     def block_ips(self,domains_folder_path):
         try:
-            self._list_domain_ips(domains_folder_path)
+            self._collect_ip_addresses(domains_folder_path)
             if self.system == "linux":
                 self.linux_firewall.block_ips(self.ipv4_list,self.ipv6_list)
             elif self.system == "darwin":
