@@ -188,4 +188,3 @@ Your ideas, fixes, and improvements help make **domain-ip-blocker** better for e
 
 This project is licensed under the **[MIT License](LICENSE)** © 2025 [Vidyasagar Gajivelli](https://github.com/vidyasagar)
 
----
